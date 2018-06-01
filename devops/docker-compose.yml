@@ -1,0 +1,17 @@
+
+version: '3'
+
+services:
+
+    pso:
+        build: ../
+        volumes:
+            - ../:/var/www/node
+        ports:
+            - 8181:8181
+        networks:
+            - pso-net
+
+networks:
+    pso-net:
+        driver: bridge

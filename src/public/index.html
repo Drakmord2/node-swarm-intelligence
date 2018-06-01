@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link href='./stylesheets/style.css' rel='stylesheet' type='text/css'>
+
+    <title>Web PSO</title>
+</head>
+<body>
+    <h2>Node PSO</h2>
+
+    <img hidden id="sphere" width="420" height="420" src="./images/spherefunction.png">
+    <img hidden id="rosenbrock" width="420" height="420" src="./images/rosenbrock.png">
+    <img hidden id="rastrigin" width="420" height="420" src="./images/rastrigin.png">
+
+    <div id="main-container">
+        <div id="config-container">
+            <div id="configs" class="well well-sm">
+                <label>Particles</label><br>
+                <input id="particles" type="text" value="30"><br><br>
+
+                <label>Iterations</label><br>
+                <input id="iterations" type="text" value="100"><br>
+
+                <form name="funcForm">
+                    <br>Functions<br>
+                    <input type="radio" name="function" value="rastrigin" checked> Rastrigin<br>
+                    <input type="radio" name="function" value="sphere"> Sphere<br>
+                    <input type="radio" name="function" value="rosenbrock"> Rosenbrock<br>
+                </form><br>
+
+                <div id="controls" class="wrapper">
+                    <button id="btn1" class="btn btn-success btn-m" onclick="restart()">Start</button>
+                    <button id="btn2" class="btn btn-success btn-m" onclick="clearCanvas()">Clear</button>
+                </div>
+            </div>
+
+            <div id="result-div" class="well well-sm">
+                <p id="result"></p>
+            </div>
+        </div>
+
+        <div id="canvas-container">
+            <canvas id="myCanvas" width="420" height="420">No Canvas support</canvas>
+        </div>
+    </div><br>
+
+    <div class="well well-sm">
+        <div class="wrapper">
+            <footer><a href="https://github.com/Drakmord2/node-pso">https://github.com/Drakmord2/node-pso</a></footer>
+        </div>
+    </div>
+
+    <script src="javascripts/canvas.js"></script>
+</body>
+</html>

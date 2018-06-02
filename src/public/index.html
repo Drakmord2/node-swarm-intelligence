@@ -11,7 +11,7 @@
     <title>Web PSO</title>
 </head>
 <body>
-    <h2>Node PSO</h2>
+    <h2>Node Swarm</h2>
 
     <img hidden id="sphere" width="420" height="420" src="./images/spherefunction.png">
     <img hidden id="rosenbrock" width="420" height="420" src="./images/rosenbrock.png">
@@ -26,8 +26,16 @@
                 <label>Iterations</label><br>
                 <input id="iterations" type="text" value="100"><br>
 
+                <form name="algCombo">
+                    <br><label>Algorithms</label><br>
+                    <select>
+                        <option value="pso">Particle Swarm Optimization</option>
+                        <option value="fss">Fish School Search</option>
+                        <option value="abc">Artificial Bee Colony</option>
+                    </select>
+                </form>
                 <form name="funcForm">
-                    <br>Functions<br>
+                    <br><label>Functions</label><br>
                     <input type="radio" name="function" value="rastrigin" checked> Rastrigin<br>
                     <input type="radio" name="function" value="sphere"> Sphere<br>
                     <input type="radio" name="function" value="rosenbrock"> Rosenbrock<br>
@@ -51,7 +59,7 @@
 
     <div class="well well-sm">
         <div class="wrapper">
-            <footer><a href="https://github.com/Drakmord2/node-pso">https://github.com/Drakmord2/node-pso</a></footer>
+            <footer><a href="https://github.com/Drakmord2/node-swarm-intelligence">https://github.com/Drakmord2/node-swarm-intelligence</a></footer>
         </div>
     </div>
 

@@ -1,5 +1,5 @@
 #!/bin/bash
 
-echo "Started PSO container";
+echo "Started Swarm Intelligence container";
 
 tail -f /dev/null;

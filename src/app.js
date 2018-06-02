@@ -12,6 +12,7 @@ const config = require('./config');
 // Routers
 const index = require('./routes/index');
 const pso   = require('./routes/psoRouter');
+const fss   = require('./routes/fssRouter');
 
 // Application
 const app = express();
@@ -26,6 +27,7 @@ app.use( express.static( path.join(__dirname, 'public')));
 // Mount Routes
 app.use('/', index);
 app.use('/pso', pso);
+app.use('/fss', fss);
 
 // Catch 404 and forward to error handler
 app.use(function(req, res, next) {

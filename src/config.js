@@ -1,6 +1,12 @@
 
 const configs = {
     dimensions: 30,
+    fss: {
+        step_ind: 0.1,
+        step_vol: 0.01,
+        min_weight: 1,
+        max_iteration: 300000
+    },
     pso: {
         accelP: 2.05,
         accelG: 2.05,

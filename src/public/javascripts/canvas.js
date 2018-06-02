@@ -1,6 +1,7 @@
 
 const xhr = new XMLHttpRequest();
 
+let algorithm;
 let func_name;
 let iteration;
 let max_iteration;
@@ -136,6 +137,12 @@ function getFunctionName() {
     }
 }
 
+function getAlgorithm() {
+    let combobox = document.getElementsByName('algCombo');
+
+    return combobox.value;
+}
+
 function sendRequest(json, path) {
     xhr.open('POST', `http://localhost:8181${path}`, true);
 
@@ -144,11 +151,12 @@ function sendRequest(json, path) {
 }
 
 function init() {
-    positions       = [];
-    iteration       = 0;
-    frameID         = 0;
+    positions   = [];
+    iteration   = 0;
+    frameID     = 0;
 
     func_name       = getFunctionName();
+    algorithm       = getAlgorithm();
     max_iteration   = document.getElementById('iterations').value;
     num_particles   = document.getElementById('particles').value;
 }
@@ -158,12 +166,11 @@ function start() {
 
     let data = {
         func_name: func_name,
+        algorithm: algorithm,
         num_particles: num_particles,
         max_iteration: max_iteration
     };
     const json = JSON.stringify(data);
 
-    sendRequest(json, '/pso');
+    sendRequest(json, `/${algorithm}`);
 }
-
-window.onload = start();

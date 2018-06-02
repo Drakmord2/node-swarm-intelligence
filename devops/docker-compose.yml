@@ -3,15 +3,15 @@ version: '3'
 
 services:
 
-    pso:
+    swarm:
         build: ../
         volumes:
             - ../:/var/www/node
         ports:
             - 8181:8181
         networks:
-            - pso-net
+            - swarm-net
 
 networks:
-    pso-net:
+    swarm-net:
         driver: bridge

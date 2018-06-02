@@ -2,7 +2,7 @@
 // Modules
 const express       = require('express');
 const bodyParser    = require('body-parser');
-const psoCtrl       = require('../controller/psoController');
+const Controller    = require('../controller/psoController');
 
 // Router
 const psoRouter = express.Router();
@@ -18,7 +18,7 @@ psoRouter.route('/')
     .options((req, res, next) => {
         res.end();
     })
-    .post(psoCtrl.optimize);
+    .post(Controller.optimize);
 
 psoRouter.route('/stats')
     .all((req, res, next) => {
@@ -29,7 +29,7 @@ psoRouter.route('/stats')
     .options((req, res, next) => {
         res.end();
     })
-    .post(psoCtrl.optimize_stats);
+    .post(Controller.optimize_stats);
 
 function cors(res) {
     res.statusCode = 200;

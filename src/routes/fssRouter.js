@@ -2,7 +2,7 @@
 // Modules
 const express       = require('express');
 const bodyParser    = require('body-parser');
-const fssCtrl       = require('../controller/fssController');
+const Controller    = require('../controller/fssController');
 
 // Router
 const fssRouter = express.Router();
@@ -18,7 +18,7 @@ fssRouter.route('/')
     .options((req, res, next) => {
         res.end();
     })
-    .post(fssCtrl.optimize);
+    .post(Controller.optimize);
 
 fssRouter.route('/stats')
     .all((req, res, next) => {
@@ -29,7 +29,7 @@ fssRouter.route('/stats')
     .options((req, res, next) => {
         res.end();
     })
-    .post(fssCtrl.optimize_stats);
+    .post(Controller.optimize_stats);
 
 function cors(res) {
     res.statusCode = 200;

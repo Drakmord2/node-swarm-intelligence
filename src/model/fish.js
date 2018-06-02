@@ -2,25 +2,27 @@
 const config        = require('../config');
 const dimensions    = config.dimensions;
 
-let gbest = {};
-
-class Particle {
-    constructor(position, velocity, heuristic, boundary) {
+class Fish {
+    constructor(position, heuristic, boundary) {
         this.heuristic  = heuristic;
         this.boundary   = boundary;
+        this.position   = position;
+        this.weight     = this.evaluate();
     }
 
     evaluate() {
-        return {};
-    }
+        let weight = this.heuristic(this.position, dimensions);
 
-    static clear() {
-        gbest = {};
-    }
+        if (weight < config.fss.min_weight) {
+            return config.fss.min_weight;
+        }
 
-    static getGbest() {
-        return gbest;
+        if (weight > config.fss.weight_scale / 2) {
+            return config.fss.weight_scale / 2;
+        }
+
+        return weight;
     }
 }
 
-module.exports = Particle;
+module.exports = Fish;

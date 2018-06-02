@@ -5,23 +5,16 @@ const fish      = require('../model/fish');
 function optimize(req, res, next) {
     const func_name     = req.body.func_name;
     const num_particles = req.body.num_particles;
-    const iterations    = config.fss.max_iteration;
+    const iterations    = req.body.max_iteration;
 
-    fish.clear();
-    let fishes = generate_particles(num_particles, func_name);
+    let fishes = generate_school(num_particles, func_name);
 
     let positions = [];
-    let gbest = {
-        solution: NaN,
-        position: [NaN, NaN]
-    };
 
     for(let i = 0; i < iterations; i++) {
         let auxPos = [];
         fishes.forEach((agent, index, fishes) => {
-            if (i !== 0) {
-                gbest = agent.evaluate();
-            }
+            agent.evaluate();
 
             let posx = agent.position[0];
             let posy = agent.position[1];
@@ -36,10 +29,45 @@ function optimize(req, res, next) {
     const data = {
         iterations: iterations,
         positions:  positions,
-        boundary:   config.pso.boundaries[func_name]
+        boundary:   config.boundaries[func_name]
     };
 
     res.json(data);
+}
+
+/**
+ 1 Initialize user parameters
+ 2 Initialize fishes positions randomly
+ 3 while Stopping condition is not met do
+ 4 Calculate fitness for each fish
+ 5 Run individual operator movement
+ 6 Calculate fitness for each fish
+ 7 Run feeding operator
+ 8 Run collective-instinctive movement operator
+ 9 Run collective-volitive movement operator
+ 10 end while
+ **/
+
+
+
+function feeding() {
+
+}
+
+function individual_movement() {
+
+}
+
+function instinctive_movement() {
+
+}
+
+function volitive_movement() {
+
+}
+
+function getBarycenter() {
+
 }
 
 function optimize_stats(req, res, next) {
@@ -47,8 +75,7 @@ function optimize_stats(req, res, next) {
     const num_particles = req.body.num_particles;
     const iterations    = req.body.max_iteration;
 
-    fish.clear();
-    let fishes = generate_particles(num_particles, func_name);
+    let fishes = generate_school(num_particles, func_name);
 
     let stats = [];
     for(let i = 0; i < iterations; i++) {
@@ -69,11 +96,11 @@ function optimize_stats(req, res, next) {
     res.json(data);
 }
 
-function generate_particles(amount, func_name) {
+function generate_school(amount, func_name) {
     let fishes   = [];
     let positions   = [];
     let velocities  = [];
-    const boundary  = config.pso.boundaries[func_name];
+    const boundary  = config.boundaries[func_name];
 
     while (amount > 0) {
         let pos = get_vector(boundary);
@@ -92,7 +119,7 @@ function generate_particles(amount, func_name) {
         amount--;
     }
 
-    const heuristic = config.pso.heuristics[func_name];
+    const heuristic = config.heuristics[func_name];
 
     positions.forEach((pos, index, positions) => {
         let p = new fish(pos, velocities[index], heuristic, boundary);

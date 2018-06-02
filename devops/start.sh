@@ -2,4 +2,6 @@
 
 echo "Started Swarm Intelligence container";
 
-tail -f /dev/null;
+cd /var/www/node;
+
+npm start

@@ -1,6 +1,6 @@
 
 const configs = {
-    dimensions: 30,
+    dimensions: 3,
     fss: {
         step_ind: 0.1,
         step_vol: 0.01,

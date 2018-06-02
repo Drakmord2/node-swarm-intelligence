@@ -1,6 +1,6 @@
 
 const config    = require('../config');
-const fish  = require('../model/fish');
+const fish      = require('../model/fish');
 
 function optimize(req, res, next) {
     const func_name     = req.body.func_name;

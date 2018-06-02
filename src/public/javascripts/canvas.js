@@ -138,7 +138,7 @@ function getFunctionName() {
 }
 
 function getAlgorithm() {
-    let combobox = document.getElementsByName('algCombo');
+    let combobox = document.getElementById('algCombo');
 
     return combobox.value;
 }

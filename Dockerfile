@@ -8,6 +8,9 @@ ENV APP_ROOT="/var/www/node"
 # Set the application root
 WORKDIR ${APP_ROOT}
 
+# Install Nodemon
+RUN npm i -g nodemon
+
 # Install Express Generator
 RUN npm install -g express-generator
 
@@ -18,6 +21,7 @@ RUN npm install -g mathjs
 ADD package.json /tmp/package.json
 RUN cd /tmp && npm install
 RUN cp -a /tmp/node_modules /var/www/
+RUN cp /tmp/package-lock.json /var/www/node
 
 # Listen to port
 EXPOSE 8181

@@ -1,153 +1,131 @@
 
-const config    = require('../config');
-const fish      = require('../model/fish');
+const config        = require('../config');
+const fish          = require('../model/fish');
+const Controller    = require('./controller');
 
-function optimize(req, res, next) {
-    const func_name     = req.body.func_name;
-    const num_particles = req.body.num_particles;
-    const iterations    = req.body.max_iteration;
+class FSSController extends Controller {
 
-    let fishes = generate_school(num_particles, func_name);
+    static optimize(req, res, next) {
+        const self          = FSSController;
+        const func_name     = req.body.func_name;
+        const num_particles = req.body.num_particles;
+        const iterations    = req.body.max_iteration;
 
-    let positions = [];
+        let fishes = self.generate_school(num_particles, func_name);
 
-    for(let i = 0; i < iterations; i++) {
-        let auxPos = [];
-        fishes.forEach((agent, index, fishes) => {
-            agent.evaluate();
+        let positions = [];
 
-            let posx = agent.position[0];
-            let posy = agent.position[1];
+        for(let i = 0; i < iterations; i++) {
 
-            let obj = [[posx, posy], gbest];
-            auxPos.push(obj);
-        });
+            fishes.map(agent => agent.evaluate());
+            fishes = self.individual_movement(fishes);
+            fishes.map(agent => agent.evaluate());
+            fishes = self.feeding(fishes);
+            fishes = self.instinctive_movement(fishes);
+            fishes = self.volitive_movement(fishes);
 
-        positions.push(auxPos);
-    }
+            let auxPos = [];
+            let barycenter = self.getBarycenter(fishes);
+            fishes.forEach((agent, index, fishes) => {
+                let posx = agent.position[0];
+                let posy = agent.position[1];
 
-    const data = {
-        iterations: iterations,
-        positions:  positions,
-        boundary:   config.boundaries[func_name]
-    };
+                let obj = [[posx, posy], {solution: barycenter, position: [posx, posy]}];
+                auxPos.push(obj);
+            });
 
-    res.json(data);
-}
-
-/**
- 1 Initialize user parameters
- 2 Initialize fishes positions randomly
- 3 while Stopping condition is not met do
- 4 Calculate fitness for each fish
- 5 Run individual operator movement
- 6 Calculate fitness for each fish
- 7 Run feeding operator
- 8 Run collective-instinctive movement operator
- 9 Run collective-volitive movement operator
- 10 end while
- **/
-
-
-
-function feeding() {
-
-}
-
-function individual_movement() {
-
-}
-
-function instinctive_movement() {
-
-}
-
-function volitive_movement() {
-
-}
-
-function getBarycenter() {
-
-}
-
-function optimize_stats(req, res, next) {
-    const func_name     = req.body.func_name;
-    const num_particles = req.body.num_particles;
-    const iterations    = req.body.max_iteration;
-
-    let fishes = generate_school(num_particles, func_name);
-
-    let stats = [];
-    for(let i = 0; i < iterations; i++) {
-        fishes.forEach((agent, index, fishes) => {
-            agent.evaluate();
-        });
-
-        let gbest   = fish.getGbest();
-        gbest       = +gbest.solution.toFixed(10);
-
-        stats.push(gbest);
-    }
-
-    const data = {
-        stats: stats
-    };
-
-    res.json(data);
-}
-
-function generate_school(amount, func_name) {
-    let fishes   = [];
-    let positions   = [];
-    let velocities  = [];
-    const boundary  = config.boundaries[func_name];
-
-    while (amount > 0) {
-        let pos = get_vector(boundary);
-        if (positions.indexOf(pos) !== -1) {
-            continue;
+            positions.push(auxPos);
         }
 
-        let vel = get_vector(boundary);
-        if (velocities.indexOf(vel) !== -1) {
-            continue;
+        const data = {
+            iterations: iterations,
+            positions:  positions,
+            boundary:   config.boundaries[func_name]
+        };
+
+        res.json(data);
+    }
+
+    static feeding(fishes) {
+        return fishes;
+    }
+
+    static individual_movement(fishes) {
+        return fishes;
+    }
+
+    static instinctive_movement(fishes) {
+        return fishes;
+    }
+
+    static volitive_movement(fishes) {
+        return fishes;
+    }
+
+    static getBarycenter(fishes) {
+        let barycenter = fishes.length / 2;
+
+        return barycenter;
+    }
+
+    static optimize_stats(req, res, next) {
+        const self          = FSSController;
+        const func_name     = req.body.func_name;
+        const num_particles = req.body.num_particles;
+        const iterations    = req.body.max_iteration;
+
+        let fishes = self.generate_school(num_particles, func_name);
+
+        let solutions = [];
+        for(let i = 0; i < iterations; i++) {
+
+            fishes.map(agent => agent.evaluate());
+            fishes = self.individual_movement(fishes);
+            fishes.map(agent => agent.evaluate());
+            fishes = self.feeding(fishes);
+            fishes = self.instinctive_movement(fishes);
+            fishes = self.volitive_movement(fishes);
+
+            let barycenter = self.getBarycenter(fishes);
+
+            solutions.push(barycenter);
         }
 
-        positions.push(pos);
-        velocities.push(vel);
+        const data = {
+            solutions:  solutions
+        };
 
-        amount--;
+        res.json(data);
     }
 
-    const heuristic = config.heuristics[func_name];
+    static generate_school(amount, func_name) {
+        const self      = FSSController;
+        let fishes      = [];
+        let positions   = [];
+        const boundary  = config.boundaries[func_name];
 
-    positions.forEach((pos, index, positions) => {
-        let p = new fish(pos, velocities[index], heuristic, boundary);
+        while (amount > 0) {
+            let pos = self.get_vector(boundary);
+            if (positions.indexOf(pos) !== -1) {
+                continue;
+            }
 
-        fishes.push(p);
-    });
+            positions.push(pos);
 
-    return fishes
-}
+            amount--;
+        }
 
-function randomBetween(min, max) {
-    return Math.floor(Math.random() * (max-min+1)) + min;
-}
+        const heuristic = config.heuristics[func_name];
 
-function get_vector(boundary) {
-    const dimensions    = config.dimensions;
-    let vector          = [];
+        positions.forEach((pos, index, positions) => {
+            let p = new fish(pos, heuristic, boundary);
 
-    for(let n = 0; n < dimensions; n++){
-        let k = randomBetween(boundary[0], boundary[1]);
+            fishes.push(p);
+        });
 
-        vector.push(k);
+        return fishes
     }
-
-    return vector;
 }
 
-module.exports = {
-    optimize,
-    optimize_stats
-};
+
+module.exports = FSSController;

@@ -10,7 +10,7 @@ const configs = {
         step_ind_init: 0.1,
         step_ind_final: 0.001,
         step_vol_init: 0.01,
-        step_vol_final: 0.0001,
+        step_vol_final: 0.001,
         min_weight: 1,
         weight_scale: 5000
     },

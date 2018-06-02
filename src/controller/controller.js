@@ -16,8 +16,12 @@ class Controller {
         return vector;
     }
 
-    static randomBetween (min, max) {
-        return Math.floor(Math.random() * (max-min+1)) + min;
+    static randomBetween (min, max, integer=true) {
+        if (integer) {
+            return Math.floor(Math.random() * (max-min+1)) + min;
+        }
+
+        return Math.random() * (max-min+1) + min;
     }
 }
 

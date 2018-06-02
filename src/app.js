@@ -41,9 +41,12 @@ app.use(function(req, res, next) {
 app.use(function(err, req, res, next) {
     res.locals.message    = err.message;
     res.locals.error      = req.app.get('env') === 'development' ? err : {};
+    let json              = JSON.stringify({error: err.message});
+
+    console.error(err);
 
     res.status(err.status || 500);
-    res.send('An error occurred: '+err);
+    res.send(json);
 });
 
 // Export module

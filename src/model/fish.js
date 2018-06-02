@@ -3,25 +3,22 @@ const config        = require('../config');
 const dimensions    = config.dimensions;
 
 class Fish {
-    constructor(position, heuristic, boundary) {
-        this.heuristic  = heuristic;
-        this.boundary   = boundary;
-        this.position   = position;
-        this.weight     = this.evaluate();
+    constructor(position, heuristic) {
+        this.heuristic      = heuristic;
+        this.position       = position;
+        this.next_position  = position;
+        this.fitness        = this.evaluate(position);
+        this.next_fitness   = this.evaluate(position);
+        this.weight         = config.fss.min_weight;
     }
 
-    evaluate() {
-        let weight = this.heuristic(this.position, dimensions);
+    evaluate(position) {
+        let fitness = this.heuristic(position, dimensions);
 
-        if (weight < config.fss.min_weight) {
-            return config.fss.min_weight;
-        }
+        // Minimization
+        fitness = 1 / fitness;
 
-        if (weight > config.fss.weight_scale / 2) {
-            return config.fss.weight_scale / 2;
-        }
-
-        return weight;
+        return fitness;
     }
 }
 

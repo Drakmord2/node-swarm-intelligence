@@ -47,7 +47,8 @@ function draw(particles) {
 
     particles.forEach((pos, index, particles) => {
         pos = mapPosition(pos);
-        drawParticle(index+1, pos[0][0], pos[0][1]);
+
+        drawParticle(index+1, pos[0][0], pos[0][1], pos[2]);
     });
 }
 
@@ -75,16 +76,26 @@ function drawContour() {
     ctx.drawImage(func, 0, 0);
 }
 
-function drawParticle(id, x, y) {
+function drawParticle(id, x, y, weight) {
+    let particle_size = 5;
+
+    if (weight) {
+        particle_size *= weight;
+    }
+
+    if (particle_size > 50) {
+        particle_size = 50;
+    }
+
     ctx.beginPath();
     ctx.moveTo(x, y);
-    ctx.lineTo(x+10, y);
-    ctx.lineTo(x+10, y+10);
-    ctx.lineTo(x, y+10);
+    ctx.lineTo(x+particle_size, y);
+    ctx.lineTo(x+particle_size, y+particle_size);
+    ctx.lineTo(x, y+particle_size);
     ctx.lineTo(x, y);
-    ctx.lineTo(x+10, y+10);
-    ctx.moveTo(x+10, y);
-    ctx.lineTo(x, y+10);
+    ctx.lineTo(x+particle_size, y+particle_size);
+    ctx.moveTo(x+particle_size, y);
+    ctx.lineTo(x, y+particle_size);
 
     ctx.lineWidth   = 2;
     ctx.strokeStyle = "#0100ff";

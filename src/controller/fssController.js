@@ -10,27 +10,31 @@ class FSSController extends Controller {
         const func_name     = req.body.func_name;
         const num_particles = req.body.num_particles;
         const iterations    = req.body.max_iteration;
+        const boundaries    = config.boundaries[func_name];
 
-        let fishes = self.generate_school(num_particles, func_name);
+        let school = self.generate_school(num_particles, func_name);
 
         let positions = [];
 
         for(let i = 0; i < iterations; i++) {
 
-            fishes.map(agent => agent.evaluate());
-            fishes = self.individual_movement(fishes);
-            fishes.map(agent => agent.evaluate());
-            fishes = self.feeding(fishes);
-            fishes = self.instinctive_movement(fishes);
-            fishes = self.volitive_movement(fishes);
+            school = self.getFitness(school);
+            school = self.individual_movement(school);
+            school = self.getNextFitness(school);
+            school = self.move(school);
+            school = self.feeding(school);
+            school = self.instinctive_movement(school);
+            school = self.volitive_movement(school);
+
+            school = self.aquarium(school, boundaries);
 
             let auxPos = [];
-            let barycenter = self.getBarycenter(fishes);
-            fishes.forEach((agent, index, fishes) => {
-                let posx = agent.position[0];
-                let posy = agent.position[1];
+            let barycenter = self.getBarycenter(school);
+            school.forEach((fish, index, school) => {
+                let posx = fish.position[0];
+                let posy = fish.position[1];
 
-                let obj = [[posx, posy], {solution: barycenter, position: [posx, posy]}];
+                let obj = [[posx, posy], {solution: barycenter, position: [posx, posy]}, fish.weight];
                 auxPos.push(obj);
             });
 
@@ -40,32 +44,116 @@ class FSSController extends Controller {
         const data = {
             iterations: iterations,
             positions:  positions,
-            boundary:   config.boundaries[func_name]
+            boundary:   boundaries
         };
 
         res.json(data);
     }
 
-    static feeding(fishes) {
-        return fishes;
+    static aquarium(school, boundaries) {
+        school.forEach((fish, index, school) => {
+            for(let d = 0; d < config.dimensions; d++) {
+                if (fish.position[d] < boundaries[0]) {
+                    fish.position[d] = boundaries[0];
+                }
+
+                if (fish.position[d] > boundaries[1]) {
+                    fish.position[d] = boundaries[1];
+                }
+            }
+        });
+
+        return school;
     }
 
-    static individual_movement(fishes) {
-        return fishes;
+    // x(t+1) = x(t) + rand[-1, 1] * step_ind
+    static individual_movement(school) {
+        const self  = FSSController;
+        let step    = config.fss.step_ind_init;
+
+        school.forEach((fish, index, school) => {
+            let nextPosition = [];
+            for(let d = 0; d < config.dimensions; d++) {
+                nextPosition[d] = fish.position[d] + self.randomBetween(-1, 1, false) * step;
+            }
+
+            fish.next_position = nextPosition;
+        });
+
+        return school;
     }
 
-    static instinctive_movement(fishes) {
-        return fishes;
+    // W(t+1) = W(t) + ∆f / max(|∆f|)
+    static feeding(school) {
+        let dfs = [];
+        school.forEach((fish, index, school) => {
+            let df = Math.abs(fish.next_fitness - fish.fitness);
+            dfs.push(df);
+        });
+
+        let maxdf = dfs.reduce((a, b) => {
+            return Math.max(a,b);
+        });
+
+        school.forEach((fish, index, school) => {
+            let df = fish.next_fitness - fish.fitness;
+
+            let weight = fish.weight + df / maxdf;
+
+            if (weight >= config.fss.min_weight) {
+                fish.weight = weight;
+            }
+        });
+
+        return school;
     }
 
-    static volitive_movement(fishes) {
-        return fishes;
+    // I = (∑ ∆x * ∆f) / ∑ ∆f
+    // x(t+1) = x(t) + I
+    static instinctive_movement(school) {
+        let I = [];
+
+        // school.forEach((fish, index, school) => {
+        //     fish.position = fish.position + I;
+        // });
+
+        return school;
     }
 
-    static getBarycenter(fishes) {
-        let barycenter = fishes.length / 2;
+    static volitive_movement(school) {
+        return school;
+    }
+
+    static getBarycenter(school) {
+        let barycenter = school.length / 2;
 
         return barycenter;
+    }
+
+    static getFitness(school) {
+        school.forEach((fish, index, school) => {
+            fish.fitness = fish.evaluate(fish.position);
+        });
+
+        return school;
+    }
+
+    static getNextFitness(school) {
+        school.forEach((fish, index, school) => {
+            fish.next_fitness = fish.evaluate(fish.next_position);
+        });
+
+        return school;
+    }
+
+    static move(school) {
+        school.forEach((fish) => {
+            if (fish.next_fitness > fish.fitness) {
+                fish.position = fish.next_position;
+            }
+        });
+
+        return school;
     }
 
     static optimize_stats(req, res, next) {
@@ -74,19 +162,19 @@ class FSSController extends Controller {
         const num_particles = req.body.num_particles;
         const iterations    = req.body.max_iteration;
 
-        let fishes = self.generate_school(num_particles, func_name);
+        let school = self.generate_school(num_particles, func_name);
 
         let solutions = [];
         for(let i = 0; i < iterations; i++) {
 
-            fishes.map(agent => agent.evaluate());
-            fishes = self.individual_movement(fishes);
-            fishes.map(agent => agent.evaluate());
-            fishes = self.feeding(fishes);
-            fishes = self.instinctive_movement(fishes);
-            fishes = self.volitive_movement(fishes);
+            school.map(fish => fish.evaluate());
+            school = self.individual_movement(school);
+            school.map(fish => fish.evaluate());
+            school = self.feeding(school);
+            school = self.instinctive_movement(school);
+            school = self.volitive_movement(school);
 
-            let barycenter = self.getBarycenter(fishes);
+            let barycenter = self.getBarycenter(school);
 
             solutions.push(barycenter);
         }
@@ -100,7 +188,7 @@ class FSSController extends Controller {
 
     static generate_school(amount, func_name) {
         const self      = FSSController;
-        let fishes      = [];
+        let school      = [];
         let positions   = [];
         const boundary  = config.boundaries[func_name];
 
@@ -118,12 +206,12 @@ class FSSController extends Controller {
         const heuristic = config.heuristics[func_name];
 
         positions.forEach((pos, index, positions) => {
-            let p = new fish(pos, heuristic, boundary);
+            let p = new fish(pos, heuristic);
 
-            fishes.push(p);
+            school.push(p);
         });
 
-        return fishes
+        return school
     }
 }
 

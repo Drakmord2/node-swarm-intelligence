@@ -1,16 +1,16 @@
 
 const configs = {
-    dimensions: 2,
+    dimensions: 30,
     pso: {
         accelP: 2.05,
         accelG: 2.05,
         inertia: 0.4,
     },
     fss: {
-        step_ind_init: 0.1,
+        step_ind_init: 0.01,
         step_ind_final: 0.001,
-        step_vol_init: 0.01,
-        step_vol_final: 0.001,
+        step_vol_init: 0.1,
+        step_vol_final: 0.01,
         min_weight: 1
     },
     heuristics: {

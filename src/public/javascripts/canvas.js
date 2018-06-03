@@ -113,7 +113,7 @@ function newGeneration() {
         return;
     }
 
-    if (frameID % 20 === 0) {
+    if (frameID % 12 === 0) {
         clear();
     }
 
@@ -121,10 +121,10 @@ function newGeneration() {
         let resultBox   = document.getElementById('result');
         let gbest       = positions[iteration][num_particles-1][1];
 
-        resultBox.innerHTML = `Iteration: ${iteration+1}<br>Global Best: ${gbest.solution}`;
+        resultBox.innerHTML = `Iteration: ${iteration+1}<br>Best Fitness: ${gbest.solution}`;
     }
 
-    if (frameID % 10 === 0) {
+    if (frameID % 6 === 0) {
         draw(positions[iteration]);
         iteration++;
     }

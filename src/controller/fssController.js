@@ -6,6 +6,13 @@ const mathjs        = require('mathjs');
 
 class FSSController extends Controller {
 
+    /**
+     * Fish School Search
+     *
+     * @param req
+     * @param res
+     * @param next
+     */
     static optimize(req, res, next) {
         const self          = FSSController;
         const func_name     = req.body.func_name;
@@ -22,32 +29,20 @@ class FSSController extends Controller {
 
         for(let i = 0; i < iterations; i++) {
             let school_weight = self.getSchoolWeight(school);
-            step_ind = self.getStepInd(step_ind, iterations);
-            step_vol = self.getStepVol(step_vol, iterations);
 
             school = self.getFitness(school);
             school = self.individual_movement(school, step_ind);
             school = self.getNextFitness(school);
             school = self.move(school, boundaries);
             school = self.feeding(school);
-            school = self.instinctive_movement(school);
+            school = self.instinctive_movement(school, boundaries);
             school = self.volitive_movement(school, school_weight, step_vol);
 
-            school_weight   = self.getSchoolWeight(school);
-            school          = self.aquarium(school, boundaries);
+            step_ind        = self.getStepInd(step_ind, iterations);
+            step_vol        = self.getStepVol(step_vol, iterations);
+            best_fitness    = self.getBestFitness(best_fitness, school);
 
-            best_fitness = self.getBestFitness(best_fitness, school);
-
-            let auxPos = [];
-            school.forEach((fish, index, school) => {
-                let posx = fish.position[0];
-                let posy = fish.position[1];
-
-                let obj = [[posx, posy], {solution: best_fitness}, fish.weight, {fish_fitness: fish.fitness}];
-                auxPos.push(obj);
-            });
-
-            positions.push(auxPos);
+            positions.push(self.getData(school, best_fitness));
         }
 
         const data = {
@@ -59,12 +54,20 @@ class FSSController extends Controller {
         res.json(data);
     }
 
-    // x(t+1) = x(t) + rand[-1, 1] * step_ind
+    /**
+     * Individual Movement Operator
+     * x(t+1) = x(t) + rand[-1, 1] * step_ind
+     *
+     * @param school
+     * @param step
+     * @returns {*}
+     */
     static individual_movement(school, step) {
 
-        school.forEach((fish, index, school) => {
-            step = this.randomBetween(-1, 1, false) * step;
-            let nextPosition = mathjs.add(fish.position, step);
+        school.forEach((fish) => {
+            let rand            = this.randomBetween(-1, 1, false);
+            let factor          = rand * step;
+            let nextPosition    = mathjs.add(fish.position, factor);
 
             fish.next_position = nextPosition;
         });
@@ -72,17 +75,23 @@ class FSSController extends Controller {
         return school;
     }
 
-    // W(t+1) = W(t) + ∆f / max(|∆f|)
+    /**
+     * Feeding Operator
+     * W(t+1) = W(t) + ∆f / max(|∆f|)
+     *
+     * @param school
+     * @returns {*}
+     */
     static feeding(school) {
         let school_delta_f = [];
-        school.forEach((fish, index, school) => {
+        school.forEach((fish) => {
             let df = mathjs.abs( mathjs.subtract(fish.next_fitness, fish.fitness));
             school_delta_f.push(df);
         });
 
         let max_delta_f = mathjs.max(school_delta_f);
 
-        school.forEach((fish, index, school) => {
+        school.forEach((fish) => {
             let delta_f = fish.next_fitness - fish.fitness;
 
             let weight = fish.weight + delta_f / max_delta_f;
@@ -97,20 +106,27 @@ class FSSController extends Controller {
         return school;
     }
 
-    // I = (∑ ∆x * ∆f) / ∑ ∆f
-    // x(t+1) = x(t) + I
-    static instinctive_movement(school) {
+    /**
+     * Instinctive Movement Operator
+     * I = (∑ ∆x * ∆f) / ∑ ∆f
+     * x(t+1) = x(t) + I
+     *
+     * @param school
+     * @param boundaries
+     * @returns {*}
+     */
+    static instinctive_movement(school, boundaries) {
         let school_delta_f = 0;
-        school.forEach((fish, index, school) => {
+        school.forEach((fish) => {
             school_delta_f += fish.next_fitness - fish.fitness;
         });
 
         let fishes_deltas = [];
-        school.forEach((fish, index, school) => {
-            let delta_f = fish.next_fitness - fish.fitness;
-
+        school.forEach((fish) => {
             let delta_x = mathjs.subtract(fish.next_position, fish.position);
-            let dxdf    = mathjs.multiply(delta_x, delta_f);
+            let delta_f = mathjs.subtract(fish.next_fitness, fish.fitness);
+
+            let dxdf = mathjs.multiply(delta_x, delta_f);
 
             fishes_deltas.push(dxdf);
         });
@@ -121,7 +137,7 @@ class FSSController extends Controller {
 
         let I = mathjs.divide(fishes_deltas, school_delta_f);
 
-        school.forEach((fish, index, school) => {
+        school.forEach((fish) => {
             let position = mathjs.add(fish.position, I);
 
             fish.position = position;
@@ -130,13 +146,22 @@ class FSSController extends Controller {
         return school;
     }
 
-    // x(t+1) = x(t) - step_vol * rand[0, 1] * (x(t) - B) / distance[x(t), B] ; W(t) > W(t-1)
-    // x(t+1) = x(t) + step_vol * rand[0, 1] * (x(t) - B) / distance[x(t), B] ; W(t) < W(t-1)
+    /**
+     * Volitive Motion Operator
+     * x(t+1) = x(t) - step_vol * rand[0, 1] * (x(t) - B) / distance[x(t), B] ; W(t) > W(t-1)
+     * x(t+1) = x(t) + step_vol * rand[0, 1] * (x(t) - B) / distance[x(t), B] ; W(t) < W(t-1)
+     *
+     * @param school
+     * @param school_weight
+     * @param step
+     * @returns {*}
+     */
+
     static volitive_movement(school, school_weight, step) {
         let new_weight = this.getSchoolWeight(school);
         let barycenter = this.getBarycenter(school);
 
-        school.forEach((fish, index, school) => {
+        school.forEach((fish) => {
             let distance = this.getDistance(fish.position, barycenter);
 
             let rand        = mathjs.multiply(step, this.randomBetween(-1, 1, false));
@@ -150,13 +175,20 @@ class FSSController extends Controller {
                 movement = mathjs.add(fish.position, mathjs.divide(numerator, distance));
             }
 
-            fish.position = movement ;
+            fish.position = movement;
         });
 
         return school;
     }
 
-    // √[ ∑(p - q)^2 ]
+    /**
+     * Euclidean Distance
+     * √ ( ∑(p - q)^2)
+     *
+     * @param a
+     * @param b
+     * @returns {number}
+     */
     static getDistance(a, b) {
         let components  = mathjs.dotPow(mathjs.subtract(b, a), 2);
         let sum         = mathjs.sum(components);
@@ -166,48 +198,52 @@ class FSSController extends Controller {
         return distance;
     }
 
-    // B = (∑ ∆x * ∆W) / ∑ ∆W
+    /**
+     * School Barycenter
+     * B = (∑ x * W) / ∑ W
+     *
+     * @param school
+     * @returns {*}
+     */
     static getBarycenter(school) {
-        let fishes_deltas = [];
-        school.forEach((fish, index, school) => {
+        let fishes_weight = [];
+        school.forEach((fish) => {
             let dxdw = mathjs.multiply(fish.position, fish.weight);
-            fishes_deltas.push(dxdw);
+            fishes_weight.push(dxdw);
         });
 
-        fishes_deltas = fishes_deltas.reduce((a, b) => {
+        fishes_weight = fishes_weight.reduce((a, b) => {
             return mathjs.add(a, b);
         });
 
         let school_weight = 0;
-        school.forEach((fish, index, school) => {
+        school.forEach((fish) => {
             school_weight += fish.weight;
         });
 
-        let barycenter = mathjs.divide(fishes_deltas, school_weight);
+        let barycenter = mathjs.divide(fishes_weight, school_weight);
 
         return barycenter;
     }
 
-    static aquarium(school, boundaries) {
-        school.forEach((fish, index, school) => {
-            for(let d = 0; d < config.dimensions; d++) {
-                if (fish.position[d] < boundaries[0]) {
-                    fish.position[d] = boundaries[0];
-                }
-
-                if (fish.position[d] > boundaries[1]) {
-                    fish.position[d] = boundaries[1];
-                }
+    static checkBoundaries(position, boundaries) {
+        for(let d = 0; d < config.dimensions; d++) {
+            if (position[d] < boundaries[0]) {
+                position[d] = boundaries[0];
             }
-        });
 
-        return school;
+            if (position[d] > boundaries[1]) {
+                position[d] = boundaries[1];
+            }
+        }
+
+        return position;
     }
 
     static getSchoolWeight(school) {
         let school_weight = 0;
 
-        school.forEach((fish, index, school) => {
+        school.forEach((fish) => {
             school_weight += fish.weight;
         });
 
@@ -238,7 +274,7 @@ class FSSController extends Controller {
     }
 
     static getFitness(school) {
-        school.forEach((fish, index, school) => {
+        school.forEach((fish) => {
             fish.fitness = fish.evaluate(fish.position);
         });
 
@@ -246,25 +282,34 @@ class FSSController extends Controller {
     }
 
     static getNextFitness(school) {
-        school.forEach((fish, index, school) => {
+        school.forEach((fish) => {
             fish.next_fitness = fish.evaluate(fish.next_position);
         });
 
         return school;
     }
 
-    static move(school, boundary) {
+    static move(school, boundary, minimization=true) {
         school.forEach((fish) => {
-            if (mathjs.larger(fish.next_fitness, fish.fitness)) {
+            let fitness_improved = minimization ?
+                mathjs.larger(fish.next_fitness, fish.fitness) :
+                mathjs.smaller(fish.next_fitness, fish.fitness);
+
+            if (fitness_improved) {
+
                 for(let d = 0; d < config.dimensions; d++) {
-                    if (mathjs.smallerEq(fish.next_position[d], boundary[0]) || mathjs.largerEq(fish.next_position[d],boundary[1])) {
+                    let tooLow = mathjs.smallerEq(fish.next_position[d], boundary[0]);
+                    let tooHigh = mathjs.largerEq(fish.next_position[d],boundary[1]);
+
+                    if (tooLow || tooHigh) {
                         fish.next_position = fish.position;
                         return;
                     }
                 }
-
                 fish.position = fish.next_position;
             }
+
+            fish.next_position = fish.position;
         });
 
         return school;
@@ -288,7 +333,7 @@ class FSSController extends Controller {
 
         const heuristic = config.heuristics[func_name];
 
-        positions.forEach((pos, index, positions) => {
+        positions.forEach((pos) => {
             let p = new fish(pos, heuristic);
 
             school.push(p);
@@ -297,24 +342,24 @@ class FSSController extends Controller {
         return school
     }
 
-    static getBestFitness(fitness, school) {
-        let best = [];
+    static getBestFitness(best, school) {
+        let new_best = [];
 
-        school.forEach((fish, index, school) => {
-            best.push(fish.fitness);
+        school.forEach((fish) => {
+            new_best.push(1/fish.fitness);
         });
 
-        best = mathjs.min(best);
+        new_best = mathjs.min(new_best);
 
-        if (!fitness) {
-            return best;
+        if (!best) {
+            return new_best;
         }
 
-        if (mathjs.smaller(best, fitness)) {
-            best = fitness;
+        if (mathjs.larger(new_best, best)) {
+            new_best = best;
         }
 
-        return best;
+        return new_best;
     }
 
     static optimize_stats(req, res, next) {
@@ -324,6 +369,19 @@ class FSSController extends Controller {
         };
 
         res.json(data);
+    }
+
+    static getData(school, best_fitness) {
+        let auxPos = [];
+        school.forEach((fish) => {
+            let posx = fish.position[0];
+            let posy = fish.position[1];
+
+            let obj = [[posx, posy], {solution: best_fitness}, fish.weight, {fish_fitness: fish.fitness}];
+            auxPos.push(obj);
+        });
+
+        return auxPos;
     }
 }
 

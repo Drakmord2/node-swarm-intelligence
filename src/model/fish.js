@@ -1,7 +1,7 @@
 
 const config        = require('../config');
 const dimensions    = config.dimensions;
-const math          = require('mathjs');
+const mathjs        = require('mathjs');
 
 class Fish {
     constructor(position, heuristic) {
@@ -11,18 +11,18 @@ class Fish {
         const fitness       = this.evaluate(position);
         this.fitness        = fitness;
         this.next_fitness   = fitness;
-        this.weight         = config.fss.min_weight;
+        this.weight         = 1;
     }
 
     evaluate(position, minimization=true) {
         let fitness = this.heuristic(position, dimensions);
 
         if (minimization) {
-            if (math.equal(fitness, 0)) {
+            if (mathjs.equal(fitness, 0)) {
                 return Infinity;
             }
 
-            fitness = math.divide(1, fitness);
+            fitness = mathjs.divide(1, fitness);
         }
 
         return fitness;

@@ -1,6 +1,6 @@
 
 const configs = {
-    dimensions: 3,
+    dimensions: 2,
     pso: {
         accelP: 2.05,
         accelG: 2.05,
@@ -11,8 +11,7 @@ const configs = {
         step_ind_final: 0.001,
         step_vol_init: 0.01,
         step_vol_final: 0.001,
-        min_weight: 1,
-        weight_scale: 5000
+        min_weight: 1
     },
     heuristics: {
         sphere: (position, dimensions) => {

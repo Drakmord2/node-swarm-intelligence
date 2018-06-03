@@ -15,6 +15,11 @@ class Fish {
     evaluate(position) {
         let fitness = this.heuristic(position, dimensions);
 
+
+        if (fitness === 0) {
+            return 1;
+        }
+
         // Minimization
         fitness = 1 / fitness;
 

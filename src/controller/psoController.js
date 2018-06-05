@@ -6,14 +6,13 @@ const Controller    = require('./controller');
 
 class PSOController extends Controller {
     
-    static optimize (req, res, next) {
-        const self          = PSOController;
+    optimize (req, res, next) {
         const func_name     = req.body.func_name;
         const num_particles = req.body.num_particles;
         const iterations    = req.body.max_iteration;
     
         Particle.clear();
-        let particles = self.generate_particles(num_particles, func_name);
+        let particles = this.generate_particles(num_particles, func_name);
 
         let positions = [];
         let gbest = {
@@ -47,20 +46,19 @@ class PSOController extends Controller {
         res.json(data);
     }
 
-    static generate_particles (amount, func_name) {
-        const self      = PSOController;
+    generate_particles (amount, func_name) {
         let particles   = [];
         let positions   = [];
         let velocities  = [];
         const boundary  = config.boundaries[func_name];
 
         while (amount > 0) {
-            let pos = self.get_vector(boundary);
+            let pos = this.get_vector(boundary);
             if (positions.indexOf(pos) !== -1) {
                 continue;
             }
 
-            let vel = self.get_vector(boundary);
+            let vel = this.get_vector(boundary);
             if (velocities.indexOf(vel) !== -1) {
                 continue;
             }
@@ -82,14 +80,13 @@ class PSOController extends Controller {
         return particles
     }
 
-    static optimize_stats (req, res, next) {
-        const self          = PSOController;
+    optimize_stats (req, res, next) {
         const func_name     = req.body.func_name;
         const num_particles = req.body.num_particles;
         const iterations    = req.body.max_iteration;
 
         Particle.clear();
-        let particles = self.generate_particles(num_particles, func_name);
+        let particles = this.generate_particles(num_particles, func_name);
 
         let stats = [];
         for(let i = 0; i < iterations; i++) {

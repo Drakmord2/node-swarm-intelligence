@@ -3,7 +3,7 @@ const config = require('../config');
 
 class Controller {
 
-    static get_vector (boundary) {
+    get_vector (boundary) {
         const dimensions    = config.dimensions;
         let vector          = [];
 
@@ -16,7 +16,7 @@ class Controller {
         return vector;
     }
 
-    static randomBetween (min, max, integer=true) {
+    randomBetween (min, max, integer=true) {
         if (integer) {
             return Math.floor(Math.random() * (max-min+1)) + min;
         }

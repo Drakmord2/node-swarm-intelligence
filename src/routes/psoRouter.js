@@ -2,7 +2,11 @@
 // Modules
 const express       = require('express');
 const bodyParser    = require('body-parser');
-const Controller    = require('../controller/psoController');
+const _             = require('underscore');
+const PSO           = require('../controller/psoController');
+const Controller    = new PSO();
+
+_.bindAll(Controller, 'optimize', 'optimize_stats');
 
 // Router
 const psoRouter = express.Router();

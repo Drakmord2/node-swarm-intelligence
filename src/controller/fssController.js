@@ -13,36 +13,35 @@ class FSSController extends Controller {
      * @param res
      * @param next
      */
-    static optimize(req, res, next) {
-        const self          = FSSController;
+    optimize(req, res, next) {
         const func_name     = req.body.func_name;
         const num_particles = req.body.num_particles;
         const iterations    = req.body.max_iteration;
         const boundaries    = config.boundaries[func_name];
 
-        let school      = self.generate_school(num_particles, func_name);
-        let step_ind    = self.getStepInd(config.fss.step_ind_init, iterations);
-        let step_vol    = self.getStepVol(config.fss.step_vol_init, iterations);
+        let school      = this.generate_school(num_particles, func_name);
+        let step_ind    = this.getStepInd(config.fss.step_ind_init, iterations);
+        let step_vol    = this.getStepVol(config.fss.step_vol_init, iterations);
 
         let positions = [];
         let best_fitness;
 
         for(let i = 0; i < iterations; i++) {
-            let school_weight = self.getSchoolWeight(school);
+            let school_weight = this.getSchoolWeight(school);
 
-            school = self.getFitness(school);
-            school = self.individual_movement(school, step_ind);
-            school = self.getNextFitness(school);
-            school = self.move(school, boundaries);
-            school = self.feeding(school);
-            school = self.instinctive_movement(school, boundaries);
-            school = self.volitive_movement(school, school_weight, step_vol);
+            school = this.getFitness(school);
+            school = this.individual_movement(school, step_ind);
+            school = this.getNextFitness(school);
+            school = this.move(school, boundaries);
+            school = this.feeding(school);
+            school = this.instinctive_movement(school, boundaries);
+            school = this.volitive_movement(school, school_weight, step_vol);
 
-            step_ind        = self.getStepInd(step_ind, iterations);
-            step_vol        = self.getStepVol(step_vol, iterations);
-            best_fitness    = self.getBestFitness(best_fitness, school);
+            step_ind        = this.getStepInd(step_ind, iterations);
+            step_vol        = this.getStepVol(step_vol, iterations);
+            best_fitness    = this.getBestFitness(best_fitness, school);
 
-            positions.push(self.getData(school, best_fitness));
+            positions.push(this.getData(school, best_fitness));
         }
 
         const data = {
@@ -52,7 +51,7 @@ class FSSController extends Controller {
         };
 
         res.json(data);
-    }
+    };
 
     /**
      * Individual Movement Operator
@@ -62,7 +61,7 @@ class FSSController extends Controller {
      * @param step
      * @returns {*}
      */
-    static individual_movement(school, step) {
+    individual_movement(school, step) {
 
         school.forEach((fish) => {
             let rand            = this.randomBetween(-1, 1, false);
@@ -82,7 +81,7 @@ class FSSController extends Controller {
      * @param school
      * @returns {*}
      */
-    static feeding(school) {
+    feeding(school) {
         let school_delta_f = [];
         school.forEach((fish) => {
             let df = mathjs.abs( mathjs.subtract(fish.next_fitness, fish.fitness));
@@ -115,7 +114,7 @@ class FSSController extends Controller {
      * @param boundaries
      * @returns {*}
      */
-    static instinctive_movement(school, boundaries) {
+    instinctive_movement(school, boundaries) {
         let school_delta_f = 0;
         school.forEach((fish) => {
             school_delta_f += fish.next_fitness - fish.fitness;
@@ -157,7 +156,7 @@ class FSSController extends Controller {
      * @returns {*}
      */
 
-    static volitive_movement(school, school_weight, step) {
+    volitive_movement(school, school_weight, step) {
         let new_weight = this.getSchoolWeight(school);
         let barycenter = this.getBarycenter(school);
 
@@ -189,7 +188,7 @@ class FSSController extends Controller {
      * @param b
      * @returns {number}
      */
-    static getDistance(a, b) {
+    getDistance(a, b) {
         let components  = mathjs.dotPow(mathjs.subtract(b, a), 2);
         let sum         = mathjs.sum(components);
 
@@ -205,7 +204,7 @@ class FSSController extends Controller {
      * @param school
      * @returns {*}
      */
-    static getBarycenter(school) {
+    getBarycenter(school) {
         let fishes_weight = [];
         school.forEach((fish) => {
             let dxdw = mathjs.multiply(fish.position, fish.weight);
@@ -226,21 +225,7 @@ class FSSController extends Controller {
         return barycenter;
     }
 
-    static checkBoundaries(position, boundaries) {
-        for(let d = 0; d < config.dimensions; d++) {
-            if (position[d] < boundaries[0]) {
-                position[d] = boundaries[0];
-            }
-
-            if (position[d] > boundaries[1]) {
-                position[d] = boundaries[1];
-            }
-        }
-
-        return position;
-    }
-
-    static getSchoolWeight(school) {
+    getSchoolWeight(school) {
         let school_weight = 0;
 
         school.forEach((fish) => {
@@ -250,7 +235,7 @@ class FSSController extends Controller {
         return school_weight;
     }
 
-    static getStepInd(step, iterations) {
+    getStepInd(step, iterations) {
         let initial = config.fss.step_ind_init;
 
         let next_step = step - initial / iterations;
@@ -262,7 +247,7 @@ class FSSController extends Controller {
         return next_step;
     }
 
-    static getStepVol(step, iterations) {
+    getStepVol(step, iterations) {
         let initial = config.fss.step_vol_init;
 
         let next_step = step - initial / iterations;
@@ -273,7 +258,7 @@ class FSSController extends Controller {
         return next_step;
     }
 
-    static getFitness(school) {
+    getFitness(school) {
         school.forEach((fish) => {
             fish.fitness = fish.evaluate(fish.position);
         });
@@ -281,7 +266,7 @@ class FSSController extends Controller {
         return school;
     }
 
-    static getNextFitness(school) {
+    getNextFitness(school) {
         school.forEach((fish) => {
             fish.next_fitness = fish.evaluate(fish.next_position);
         });
@@ -289,7 +274,7 @@ class FSSController extends Controller {
         return school;
     }
 
-    static move(school, boundary, minimization=true) {
+    move(school, boundary, minimization=true) {
         school.forEach((fish) => {
             let fitness_improved = minimization ?
                 mathjs.larger(fish.next_fitness, fish.fitness) :
@@ -315,13 +300,13 @@ class FSSController extends Controller {
         return school;
     }
 
-    static generate_school(amount, func_name) {
+    generate_school(amount, func_name) {
         let school      = [];
         let positions   = [];
         const boundary  = config.boundaries[func_name];
 
         while (amount > 0) {
-            let pos = super.get_vector(boundary);
+            let pos = this.get_vector(boundary);
             if (positions.indexOf(pos) !== -1) {
                 continue;
             }
@@ -342,7 +327,7 @@ class FSSController extends Controller {
         return school
     }
 
-    static getBestFitness(best, school) {
+    getBestFitness(best, school) {
         let new_best = [];
 
         school.forEach((fish) => {
@@ -362,7 +347,7 @@ class FSSController extends Controller {
         return new_best;
     }
 
-    static optimize_stats(req, res, next) {
+    optimize_stats(req, res, next) {
         let solutions = [];
         const data = {
             solutions:  solutions
@@ -371,7 +356,7 @@ class FSSController extends Controller {
         res.json(data);
     }
 
-    static getData(school, best_fitness) {
+    getData(school, best_fitness) {
         let auxPos = [];
         school.forEach((fish) => {
             let posx = fish.position[0];

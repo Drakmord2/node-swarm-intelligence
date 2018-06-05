@@ -2,7 +2,11 @@
 // Modules
 const express       = require('express');
 const bodyParser    = require('body-parser');
-const Controller    = require('../controller/fssController');
+const _             = require('underscore');
+const FSS           = require('../controller/fssController');
+const Controller    = new FSS();
+
+_.bindAll(Controller, 'optimize', 'optimize_stats');
 
 // Router
 const fssRouter = express.Router();

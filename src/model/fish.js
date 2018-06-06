@@ -11,7 +11,7 @@ class Fish {
         const fitness       = this.evaluate(position);
         this.fitness        = fitness;
         this.next_fitness   = fitness;
-        this.weight         = 1;
+        this.weight         = mathjs.random(100, 600);
     }
 
     evaluate(position, minimization=true) {

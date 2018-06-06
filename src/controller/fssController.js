@@ -20,8 +20,8 @@ class FSSController extends Controller {
         const boundaries    = config.boundaries[func_name];
 
         let school      = this.generate_school(num_particles, func_name);
-        let step_ind    = this.getStepInd(config.fss.step_ind_init, iterations);
-        let step_vol    = this.getStepVol(config.fss.step_vol_init, iterations);
+        let step_ind    = this.getStepInd(boundaries, config.fss.step_ind_init, iterations);
+        let step_vol    = this.getStepVol(boundaries, config.fss.step_vol_init, iterations);
 
         let positions = [];
         let best_fitness;
@@ -35,10 +35,10 @@ class FSSController extends Controller {
             school = this.move(school, boundaries);
             school = this.feeding(school);
             school = this.instinctive_movement(school, boundaries);
-            school = this.volitive_movement(school, school_weight, step_vol);
+            school = this.volitive_movement(school, school_weight, step_vol, boundaries);
 
-            step_ind        = this.getStepInd(step_ind, iterations);
-            step_vol        = this.getStepVol(step_vol, iterations);
+            step_ind        = this.getStepInd(boundaries, step_ind, iterations);
+            step_vol        = this.getStepVol(boundaries, step_vol, iterations);
             best_fitness    = this.getBestFitness(best_fitness, school);
 
             positions.push(this.getData(school, best_fitness));
@@ -91,9 +91,9 @@ class FSSController extends Controller {
         let max_delta_f = mathjs.max(school_delta_f);
 
         school.forEach((fish) => {
-            let delta_f = fish.next_fitness - fish.fitness;
+            let delta_f = mathjs.subtract(fish.next_fitness, fish.fitness);
 
-            let weight = fish.weight + delta_f / max_delta_f;
+            let weight = fish.weight + mathjs.divide(delta_f, max_delta_f);
 
             if (weight < config.fss.min_weight) {
                 weight = config.fss.min_weight;
@@ -139,6 +139,8 @@ class FSSController extends Controller {
         school.forEach((fish) => {
             let position = mathjs.add(fish.position, I);
 
+            position = this.checkBoundaries(fish, position, boundaries);
+
             fish.position = position;
         });
 
@@ -156,7 +158,7 @@ class FSSController extends Controller {
      * @returns {*}
      */
 
-    volitive_movement(school, school_weight, step) {
+    volitive_movement(school, school_weight, step, boundaries) {
         let new_weight = this.getSchoolWeight(school);
         let barycenter = this.getBarycenter(school);
 
@@ -168,11 +170,15 @@ class FSSController extends Controller {
             let numerator   = mathjs.multiply(rand, sub);
 
             let movement = [];
+            const valid_distance = distance !== 0;
+
             if (new_weight > school_weight) {
-                movement = mathjs.subtract(fish.position, mathjs.divide(numerator, distance));
+                movement =  valid_distance ? mathjs.subtract(fish.position, mathjs.divide(numerator, distance)) : fish.position;
             } else {
-                movement = mathjs.add(fish.position, mathjs.divide(numerator, distance));
+                movement = valid_distance ? mathjs.add(fish.position, mathjs.divide(numerator, distance)) : fish.position;
             }
+
+            movement = this.checkBoundaries(fish, movement, boundaries);
 
             fish.position = movement;
         });
@@ -225,6 +231,16 @@ class FSSController extends Controller {
         return barycenter;
     }
 
+    checkBoundaries(fish, position, boundaries) {
+        for(let d = 0; d < config.dimensions; d++) {
+            if (mathjs.smallerEq(position[d],boundaries[0]) || mathjs.largerEq(position[d], boundaries[1])) {
+                return fish.position;
+            }
+        }
+
+        return position;
+    }
+
     getSchoolWeight(school) {
         let school_weight = 0;
 
@@ -235,8 +251,13 @@ class FSSController extends Controller {
         return school_weight;
     }
 
-    getStepInd(step, iterations) {
-        let initial = config.fss.step_ind_init;
+    getStepInd(boundaries, step, iterations) {
+        let search_space_size = mathjs.abs(boundaries[0]) + mathjs.abs(boundaries[1]);
+        let initial = config.fss.step_ind_init * search_space_size;
+
+        if (step === config.fss.step_ind_init) {
+            step = initial;
+        }
 
         let next_step = step - initial / iterations;
 
@@ -247,8 +268,13 @@ class FSSController extends Controller {
         return next_step;
     }
 
-    getStepVol(step, iterations) {
-        let initial = config.fss.step_vol_init;
+    getStepVol(boundaries, step, iterations) {
+        let search_space_size = mathjs.abs(boundaries[0]) + mathjs.abs(boundaries[1]);
+        let initial = config.fss.step_vol_init * search_space_size;
+
+        if (step === config.fss.step_vol_init) {
+            step = initial;
+        }
 
         let next_step = step - initial / iterations;
 
@@ -348,13 +374,42 @@ class FSSController extends Controller {
     }
 
     optimize_stats(req, res, next) {
-        let solutions = [];
-        const data = {
-            solutions:  solutions
-        };
+        const func_name     = req.body.func_name;
+        const num_particles = req.body.num_particles;
+        const iterations    = req.body.max_iteration;
+        const boundaries    = config.boundaries[func_name];
 
-        res.json(data);
-    }
+        let school      = this.generate_school(num_particles, func_name);
+        let step_ind    = this.getStepInd(boundaries, config.fss.step_ind_init, iterations);
+        let step_vol    = this.getStepVol(boundaries, config.fss.step_vol_init, iterations);
+        let best_fitness;
+
+        let experiments = [];
+        for(let j = 0; j < 1; j++) {
+            let stats = [];
+            for(let i = 0; i < iterations; i++) {
+                let school_weight = this.getSchoolWeight(school);
+
+                school = this.getFitness(school);
+                school = this.individual_movement(school, step_ind);
+                school = this.getNextFitness(school);
+                school = this.move(school, boundaries);
+                school = this.feeding(school);
+                school = this.instinctive_movement(school, boundaries);
+                school = this.volitive_movement(school, school_weight, step_vol, boundaries);
+
+                step_ind        = this.getStepInd(boundaries, step_ind, iterations);
+                step_vol        = this.getStepVol(boundaries, step_vol, iterations);
+                best_fitness    = this.getBestFitness(best_fitness, school);
+
+                stats.push(best_fitness);
+            }
+
+            experiments.push(stats);
+        }
+
+        res.json(experiments);
+    };
 
     getData(school, best_fitness) {
         let auxPos = [];

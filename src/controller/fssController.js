@@ -374,19 +374,20 @@ class FSSController extends Controller {
     }
 
     optimize_stats(req, res, next) {
-        const func_name     = req.body.func_name;
-        const num_particles = req.body.num_particles;
-        const iterations    = req.body.max_iteration;
-        const boundaries    = config.boundaries[func_name];
+        const func_name         = req.body.func_name;
+        const num_particles     = req.body.num_particles;
+        const iterations        = req.body.max_iteration;
+        const num_experiments   = req.body.experiments;
+        const boundaries        = config.boundaries[func_name];
 
         let school      = this.generate_school(num_particles, func_name);
         let step_ind    = this.getStepInd(boundaries, config.fss.step_ind_init, iterations);
         let step_vol    = this.getStepVol(boundaries, config.fss.step_vol_init, iterations);
-        let best_fitness;
 
         let experiments = [];
-        for(let j = 0; j < 1; j++) {
+        for(let j = 0; j < num_experiments; j++) {
             let stats = [];
+            let best_fitness;
             for(let i = 0; i < iterations; i++) {
                 let school_weight = this.getSchoolWeight(school);
 
@@ -404,7 +405,6 @@ class FSSController extends Controller {
 
                 stats.push(best_fitness);
             }
-
             experiments.push(stats);
         }
 

@@ -13,6 +13,9 @@ const configs = {
         step_vol_final: 0.001,
         min_weight: 1
     },
+    abc: {
+        max_trials: 100
+    },
     heuristics: {
         sphere: (position, dimensions) => {
             let pos = [];

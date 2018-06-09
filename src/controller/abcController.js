@@ -20,9 +20,15 @@ class ABCController extends Controller {
         const iterations    = req.body.max_iteration;
         const boundaries    = config.boundaries[func_name];
 
-        let colony = this.generate_colony(num_particles, func_name);
+        let onlookers = this.generate_colony(num_particles, 'onlooker', func_name);
+        let employees = this.generate_colony(num_particles, 'employee', func_name);
 
-        let positions = [];
+        let positions   = [];
+        let colony      = onlookers.concat(employees);
+
+        for (let i = 0; i < iterations; i++) {
+            positions.push( this.getData(colony, 0));
+        }
 
         const data = {
             iterations: iterations,
@@ -34,39 +40,22 @@ class ABCController extends Controller {
     };
 
     /**
-     * Euclidean Distance
-     * √ ( ∑(p - q)^2)
+     * x = min + rand[0,1] * (max - min)
      *
-     * @param a
-     * @param b
-     * @returns {number}
+     * @param amount
+     * @param type
+     * @param func_name
+     * @returns {Array}
      */
-    getDistance(a, b) {
-        let components  = mathjs.dotPow(mathjs.subtract(b, a), 2);
-        let sum         = mathjs.sum(components);
-
-        let distance = mathjs.sqrt(sum);
-
-        return distance;
-    }
-
-    checkBoundaries(bee, position, boundaries) {
-        for(let d = 0; d < config.dimensions; d++) {
-            if (mathjs.smallerEq(position[d],boundaries[0]) || mathjs.largerEq(position[d], boundaries[1])) {
-                return bee.position;
-            }
-        }
-
-        return position;
-    }
-
-    generate_colony(amount, func_name) {
-        let colony      = [];
-        let positions   = [];
-        const boundary  = config.boundaries[func_name];
+    generate_colony(amount, type, func_name) {
+        let colony          = [];
+        let positions       = [];
+        const boundaries    = config.boundaries[func_name];
+        const heuristic     = config.heuristics[func_name];
+        amount              = parseInt(amount / 2);
 
         while (amount > 0) {
-            let pos = this.get_vector(boundary);
+            let pos = this.get_vector(boundaries);
             if (positions.indexOf(pos) !== -1) {
                 continue;
             }
@@ -76,14 +65,10 @@ class ABCController extends Controller {
             amount--;
         }
 
-        const heuristic = config.heuristics[func_name];
-
         positions.forEach((pos) => {
-            let onlooker = new Onlooker(pos, heuristic);
-            let employee = new Employee(pos, heuristic);
+            let bee = type === 'onlooker' ? new Onlooker(pos, heuristic, boundaries) : new Employee(pos, heuristic, boundaries);
 
-            colony.push(onlooker);
-            colony.push(employee);
+            colony.push(bee);
         });
 
         return colony
@@ -107,7 +92,7 @@ class ABCController extends Controller {
             let posx = bee.position[0];
             let posy = bee.position[1];
 
-            let obj = [[posx, posy], {solution: best_fitness}, bee.type, {bee_fitness: bee.fitness}];
+            let obj = [[posx, posy], {solution: best_fitness}, null, bee.type];
             auxPos.push(obj);
         });
 

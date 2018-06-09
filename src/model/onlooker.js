@@ -1,13 +1,51 @@
 
 const config        = require('../config');
+const dimensions    = config.dimensions;
 const mathjs        = require('mathjs');
 const Bee           = require('./bee');
-const dimensions    = config.dimensions;
 
 class OnlookerBee extends Bee {
-    constructor() {
-        super();
+
+    constructor(position, heuristic, boundaries) {
+        super(position, heuristic, boundaries);
         this.type = "onlooker";
     }
 
+    onlook(sources) {
+        let bee = mathjs.pickRandom(sources);
+
+        this.exploit(bee.position, bee.fitness);
+    }
+
+    /**
+     * x(t+1) = x(t) + ø * (x(t) - randx)
+     *
+     * @param position
+     * @param fitness
+     */
+    exploit(position, fitness) {
+        if (this.trial <= config.abc.max_trials) {
+
+            let component = mathjs.pickRandom(position);
+            let phi       = mathjs.random([1, dimensions], -1, 1);
+
+            let sub             = mathjs.subtract(position, component);
+            let mul             = mathjs.multiply(sub, phi);
+            let new_position    = mathjs.add(position, mul);
+
+            new_position        = this.checkBoundaries(new_position);
+            let new_fitness     = this.evaluate(new_position);
+
+            if (new_fitness <= fitness) {
+                this.trial      = 0;
+                this.position   = new_position;
+                this.fitness    = new_fitness;
+                return;
+            }
+
+            this.trial++;
+        }
+    }
 }
+
+module.exports = OnlookerBee;

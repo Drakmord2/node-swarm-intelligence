@@ -48,7 +48,7 @@ function draw(particles) {
     particles.forEach((pos, index, particles) => {
         pos = mapPosition(pos);
 
-        drawParticle(index+1, pos[0][0], pos[0][1], pos[2]);
+        drawParticle(index+1, pos[0][0], pos[0][1], pos[2], pos[3]);
     });
 }
 
@@ -76,7 +76,7 @@ function drawContour() {
     ctx.drawImage(func, 0, 0);
 }
 
-function drawParticle(id, x, y, weight) {
+function drawParticle(id, x, y, weight, type) {
     let particle_size = 5;
 
     if (weight) {
@@ -99,6 +99,11 @@ function drawParticle(id, x, y, weight) {
 
     ctx.lineWidth   = 2;
     ctx.strokeStyle = "#0100ff";
+
+    if (type === 'onlooker') {
+        ctx.strokeStyle = "#0ff0ff";
+    }
+
     ctx.stroke();
 
     ctx.beginPath();

@@ -295,36 +295,6 @@ class FSSController extends Controller {
         return next_step;
     }
 
-    getFitness(school) {
-        school.forEach((fish) => {
-            fish.fitness = fish.evaluate(fish.position);
-        });
-
-        return school;
-    }
-
-    move(school, boundary) {
-        school.forEach((fish) => {
-            let fitness_improved = mathjs.larger(fish.next_fitness, fish.fitness);
-
-            if (fitness_improved) {
-
-                for(let d = 0; d < dimensions; d++) {
-                    let tooLow  = mathjs.smaller(fish.next_position[d], boundary[0]);
-                    let tooHigh = mathjs.larger(fish.next_position[d], boundary[1]);
-
-                    if (tooLow || tooHigh) {
-                        return;
-                    }
-                }
-
-                fish.position = fish.next_position;
-            }
-        });
-
-        return school;
-    }
-
     generate_school(amount, func_name) {
         let school      = [];
         let positions   = [];
@@ -389,7 +359,7 @@ class FSSController extends Controller {
             let best_fitness    = null;
 
             for(let i = 0; i < iterations; i++) {
-                
+
                 school = this.individual_movement(school, step_ind, boundaries);
                 school = this.feeding(school);
                 school = this.instinctive_movement(school, boundaries);

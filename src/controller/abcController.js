@@ -188,7 +188,7 @@ class ABCController extends Controller {
             for (let i = 0; i < iterations; i++) {
 
                 employees       = this.employee_phase(employees);
-                employees       = this.probabilites(employees);
+                employees       = this.probabilities(employees);
                 best_sources    = this.selection(best_sources, employees);
                 onlookers       = this.onlooker_phase(onlookers,best_sources);
                 colony          = onlookers.concat(employees);

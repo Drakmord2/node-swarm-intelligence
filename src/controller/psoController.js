@@ -100,11 +100,7 @@ class PSOController extends Controller {
             stats.push(gbest);
         }
 
-        const data = {
-            stats: stats
-        };
-
-        res.json(data);
+        res.json(stats);
     }
 }
 

@@ -32,7 +32,7 @@ class ABCController extends Controller {
         for (let i = 0; i < iterations; i++) {
 
             employees       = this.employee_phase(employees);
-            employees       = this.probabilites(employees);
+            employees       = this.probabilities(employees);
             best_sources    = this.selection(best_sources, employees);
             onlookers       = this.onlooker_phase(onlookers,best_sources);
             colony          = onlookers.concat(employees);
@@ -63,7 +63,7 @@ class ABCController extends Controller {
         return employees;
     }
 
-    probabilites(employees) {
+    probabilities(employees) {
         let total_fitness = mathjs.sum(employees.map((bee)=>{
             return bee.get_fitness();
         }));

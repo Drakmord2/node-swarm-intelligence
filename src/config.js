@@ -7,10 +7,10 @@ const configs = {
         inertia: 0.4,
     },
     fss: {
-        step_ind_init: 0.1,
+        step_ind_init: 0.01,
         step_ind_final: 0.001,
-        step_vol_init: 0.2,
-        step_vol_final: 0.001,
+        step_vol_init: 0.1,
+        step_vol_final: 0.01,
         min_weight: 1
     },
     abc: {

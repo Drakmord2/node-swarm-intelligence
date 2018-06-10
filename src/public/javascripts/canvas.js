@@ -83,9 +83,8 @@ function drawParticle(id, x, y, weight, type) {
         particle_size *= weight/200;
     }
 
-    if (particle_size > 25) {
-        particle_size = 25;
-    }
+    if (particle_size > 40) {particle_size = 40;}
+    if (particle_size < 5) {particle_size = 5;}
 
     ctx.beginPath();
     ctx.moveTo(x, y);

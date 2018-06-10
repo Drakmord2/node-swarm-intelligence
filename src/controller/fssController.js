@@ -385,18 +385,15 @@ class FSSController extends Controller {
 
         let experiments = [];
         for(let j = 0; j < num_experiments; j++) {
-            let stats = [];
-            let best_fitness;
-            for(let i = 0; i < iterations; i++) {
-                let school_weight = this.getSchoolWeight(school);
+            let stats           = [];
+            let best_fitness    = null;
 
-                school = this.getFitness(school);
-                school = this.individual_movement(school, step_ind);
-                school = this.getNextFitness(school);
-                school = this.move(school, boundaries);
+            for(let i = 0; i < iterations; i++) {
+                
+                school = this.individual_movement(school, step_ind, boundaries);
                 school = this.feeding(school);
                 school = this.instinctive_movement(school, boundaries);
-                school = this.volitive_movement(school, school_weight, step_vol, boundaries);
+                school = this.volitive_movement(school, step_vol, boundaries);
 
                 step_ind        = this.getStepInd(boundaries, step_ind, iterations);
                 step_vol        = this.getStepVol(boundaries, step_vol, iterations);

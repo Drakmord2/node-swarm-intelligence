@@ -181,7 +181,6 @@ function start() {
 
     let data = {
         func_name: func_name,
-        algorithm: algorithm,
         num_particles: num_particles,
         max_iteration: max_iteration
     };

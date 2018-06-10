@@ -11,26 +11,21 @@ class OnlookerBee extends Bee {
         this.type = "onlooker";
     }
 
-    onlook(sources) {
-        let bee = mathjs.pickRandom(sources);
-
-        this.exploit(bee.position, bee.fitness);
-    }
-
     /**
      * x(t+1) = x(t) + ø * (x(t) - randx)
-     *
-     * @param position
-     * @param fitness
      */
-    exploit(position, fitness) {
+    exploit(sources) {
+        let bee         = mathjs.pickRandom(sources);
+        let position    = bee.position;
+        let fitness     = bee.fitness;
+
         if (this.trial <= config.abc.max_trials) {
 
             let component = mathjs.pickRandom(position);
-            let phi       = mathjs.random([1, dimensions], -1, 1);
+            let phi       = mathjs.random([1, dimensions], -1, 1)[0];
 
             let sub             = mathjs.subtract(position, component);
-            let mul             = mathjs.multiply(sub, phi);
+            let mul             = mathjs.dotMultiply(sub, phi);
             let new_position    = mathjs.add(position, mul);
 
             new_position        = this.checkBoundaries(new_position);

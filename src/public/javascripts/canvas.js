@@ -80,11 +80,11 @@ function drawParticle(id, x, y, weight, type) {
     let particle_size = 5;
 
     if (weight) {
-        particle_size *= weight;
+        particle_size *= weight/200;
     }
 
-    if (particle_size > 50) {
-        particle_size = 50;
+    if (particle_size > 25) {
+        particle_size = 25;
     }
 
     ctx.beginPath();
@@ -101,7 +101,7 @@ function drawParticle(id, x, y, weight, type) {
     ctx.strokeStyle = "#0100ff";
 
     if (type === 'onlooker') {
-        ctx.strokeStyle = "#0ff0ff";
+        ctx.strokeStyle = "#ff00f0";
     }
 
     ctx.stroke();

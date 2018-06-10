@@ -7,7 +7,7 @@ class Bee {
     constructor(position, heuristic, boundaries) {
         this.position       = position;
         this.heuristic      = heuristic;
-        this.boudaries      = boundaries;
+        this.boundaries     = boundaries;
         this.fitness        = this.evaluate(position);
         this.trial          = 0;
         this.probability    = 0.0;
@@ -49,10 +49,12 @@ class Bee {
     }
 
     reset(position) {
-        this.position       = position;
-        this.fitness        = this.evaluate(position);
-        this.trial          = 0;
-        this.probability    = 0.0;
+        if (this.trial >= config.abc.max_trials) {
+            this.position       = position;
+            this.fitness        = this.evaluate(position);
+            this.trial          = 0;
+            this.probability    = 0.0;
+        }
     }
 }
 

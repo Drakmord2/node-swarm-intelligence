@@ -125,7 +125,7 @@ class FSSController extends Controller {
             let delta_x = mathjs.subtract(fish.next_position, fish.position);
             let delta_f = mathjs.subtract(fish.next_fitness, fish.fitness);
 
-            let dxdf = mathjs.multiply(delta_x, delta_f);
+            let dxdf = mathjs.dotMultiply(delta_x, delta_f);
 
             fishes_deltas.push(dxdf);
         });
@@ -165,9 +165,9 @@ class FSSController extends Controller {
         school.forEach((fish) => {
             let distance = this.getDistance(fish.position, barycenter);
 
-            let rand        = mathjs.multiply(step, this.randomBetween(-1, 1, false));
+            let rand        = mathjs.dotMultiply(step, this.randomBetween(-1, 1, false));
             let sub         = mathjs.subtract(fish.position, barycenter);
-            let numerator   = mathjs.multiply(rand, sub);
+            let numerator   = mathjs.dotMultiply(rand, sub);
 
             let movement = [];
             const valid_distance = distance !== 0;
@@ -213,7 +213,7 @@ class FSSController extends Controller {
     getBarycenter(school) {
         let fishes_weight = [];
         school.forEach((fish) => {
-            let dxdw = mathjs.multiply(fish.position, fish.weight);
+            let dxdw = mathjs.dotMultiply(fish.position, fish.weight);
             fishes_weight.push(dxdw);
         });
 

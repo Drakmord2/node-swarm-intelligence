@@ -172,10 +172,34 @@ class ABCController extends Controller {
         const func_name         = req.body.func_name;
         const num_particles     = req.body.num_particles;
         const iterations        = req.body.max_iteration;
-        const num_experiments   = req.body.experiments;
         const boundaries        = config.boundaries[func_name];
+        const num_experiments   = req.body.experiments;
 
         let experiments = [];
+        for (let j = 0; j < num_experiments; j++) {
+            let onlookers = this.generate_colony(num_particles, 'onlooker', func_name);
+            let employees = this.generate_colony(num_particles, 'employee', func_name);
+
+            let stats           = [];
+            let best_fitness    = null;
+            let best_sources    = [];
+            let colony          = [];
+
+            for (let i = 0; i < iterations; i++) {
+
+                employees       = this.employee_phase(employees);
+                employees       = this.probabilites(employees);
+                best_sources    = this.selection(best_sources, employees);
+                onlookers       = this.onlooker_phase(onlookers,best_sources);
+                colony          = onlookers.concat(employees);
+                colony          = this.scout_phase(colony, boundaries);
+                best_fitness    = this.best_fitness(colony, best_fitness);
+
+                stats.push(best_fitness[0]);
+            }
+
+            experiments.push(stats);
+        }
 
         res.json(experiments);
     };

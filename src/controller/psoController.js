@@ -81,26 +81,31 @@ class PSOController extends Controller {
     }
 
     optimize_stats (req, res, next) {
-        const func_name     = req.body.func_name;
-        const num_particles = req.body.num_particles;
-        const iterations    = req.body.max_iteration;
+        const func_name         = req.body.func_name;
+        const num_particles     = req.body.num_particles;
+        const iterations        = req.body.max_iteration;
+        const num_experiments   = req.body.experiments;
 
-        Particle.clear();
-        let particles = this.generate_particles(num_particles, func_name);
+        let experiments = [];
+        for (let i = 0; i < num_experiments; i++) {
+            Particle.clear();
+            let particles = this.generate_particles(num_particles, func_name);
 
-        let stats = [];
-        for(let i = 0; i < iterations; i++) {
-            particles.forEach((agent, index, particles) => {
-                agent.evaluate();
-            });
+            let stats = [];
+            for(let i = 0; i < iterations; i++) {
+                particles.forEach((agent, index, particles) => {
+                    agent.evaluate();
+                });
 
-            let gbest   = Particle.getGbest();
-            gbest       = +gbest.solution.toFixed(10);
+                let gbest   = Particle.getGbest();
+                gbest       = +gbest.solution.toFixed(10);
 
-            stats.push(gbest);
+                stats.push(gbest);
+            }
+            experiments.push(stats);
         }
 
-        res.json(stats);
+        res.json(experiments);
     }
 }
 

@@ -9,7 +9,7 @@
   "dependencies": {
     "express": "4.16.2",
     "mathjs": "4.4.2",
-    "morgan": "1.9.0",
+    "morgan": "1.9.1",
     "body-parser": "1.18.2",
     "assert": "1.4.1",
     "serve-favicon": "2.4.5",

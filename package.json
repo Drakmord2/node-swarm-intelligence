@@ -15,7 +15,7 @@
     "serve-favicon": "2.4.5",
     "cors": "2.8.4",
     "debug": "2.6.9",
-    "underscore": "1.9.1"
+    "underscore": "1.12.1"
   },
   "devDependencies": {
     "nodemon": "^1.17.2"
